@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>Sports Imposter</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #0a0a0f;
+    --card: #1a1a2e;
+    --card-border: #2a2a3e;
+    --text: #f0f0f5;
+    --text-dim: #8888aa;
+    --accent: #6c63ff;
+    --accent-glow: rgba(108, 99, 255, 0.3);
+    --danger: #ff4757;
+    --success: #2ed573;
+    --ufc: #e74c3c;
+    --soccer: #2ecc71;
+    --basketball: #f39c12;
+    --football: #8b5e3c;
+    --radius: 16px;
+    --safe-top: env(safe-area-inset-top, 20px);
+    --safe-bottom: env(safe-area-inset-bottom, 20px);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100dvh;
+    padding: calc(var(--safe-top) + 20px) 20px calc(var(--safe-bottom) + 20px);
+    animation: fadeIn 0.3s ease;
+  }
+  .screen.active { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 20px var(--accent-glow); }
+    50% { box-shadow: 0 0 40px var(--accent-glow), 0 0 60px rgba(108, 99, 255, 0.15); }
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 32px;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    max-width: 360px;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 4px 15px var(--accent-glow);
+  }
+  .btn-primary:active { background: #5a52e0; }
+
+  .btn-secondary {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--card-border);
+  }
+
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+  }
+
+  .btn-success {
+    background: var(--success);
+    color: white;
+  }
+
+  .btn-small {
+    padding: 10px 20px;
+    font-size: 15px;
+  }
+
+  /* ===== HOME SCREEN ===== */
+  #home { justify-content: center; gap: 40px; }
+
+  .logo-area {
+    text-align: center;
+    animation: slideUp 0.6s ease;
+  }
+
+  .logo-icon {
+    font-size: 72px;
+    margin-bottom: 16px;
+  }
+
+  .logo-title {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--accent), #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo-subtitle {
+    font-size: 15px;
+    color: var(--text-dim);
+    margin-top: 8px;
+  }
+
+  .home-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 360px;
+    animation: slideUp 0.6s ease 0.15s both;
+  }
+
+  /* ===== SETUP SCREEN ===== */
+  #setup { gap: 24px; padding-top: calc(var(--safe-top) + 16px); }
+
+  .screen-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 8px;
+  }
+
+  .back-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 17px;
+    cursor: pointer;
+    padding: 8px;
+    margin-left: -8px;
+  }
+
+  .screen-title {
+    font-size: 20px;
+    font-weight: 700;
+    flex: 1;
+    text-align: center;
+    margin-right: 30px;
+  }
+
+  .setup-section {
+    width: 100%;
+    max-width: 400px;
+    animation: slideUp 0.4s ease both;
+  }
+  .setup-section:nth-child(3) { animation-delay: 0.05s; }
+  .setup-section:nth-child(4) { animation-delay: 0.1s; }
+  .setup-section:nth-child(5) { animation-delay: 0.15s; }
+  .setup-section:nth-child(6) { animation-delay: 0.2s; }
+
+  .section-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+
+  .option-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .option-btn {
+    padding: 14px 12px;
+    border-radius: 12px;
+    background: var(--card);
+    border: 2px solid var(--card-border);
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .option-btn:active { transform: scale(0.97); }
+  .option-btn.selected {
+    border-color: var(--accent);
+    background: rgba(108, 99, 255, 0.15);
+  }
+  .option-btn .opt-emoji { display: block; font-size: 24px; margin-bottom: 4px; }
+
+  .option-btn[data-cat="ufc"].selected { border-color: var(--ufc); background: rgba(231, 76, 60, 0.15); }
+  .option-btn[data-cat="soccer"].selected { border-color: var(--soccer); background: rgba(46, 204, 113, 0.15); }
+  .option-btn[data-cat="basketball"].selected { border-color: var(--basketball); background: rgba(243, 156, 18, 0.15); }
+  .option-btn[data-cat="football"].selected { border-color: var(--football); background: rgba(139, 94, 60, 0.15); }
+
+  .stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    background: var(--card);
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid var(--card-border);
+  }
+  .stepper-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    color: white;
+    font-size: 22px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .stepper-btn:disabled { opacity: 0.3; cursor: default; }
+  .stepper-val {
+    font-size: 28px;
+    font-weight: 700;
+    min-width: 40px;
+    text-align: center;
+  }
+
+  .start-area {
+    width: 100%;
+    max-width: 400px;
+    margin-top: auto;
+    padding-top: 16px;
+  }
+
+  /* ===== PASS & PLAY ===== */
+  #passplay { justify-content: center; gap: 24px; text-align: center; }
+
+  .player-badge {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+  }
+
+  .player-number {
+    font-size: 72px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .tap-prompt {
+    font-size: 15px;
+    color: var(--text-dim);
+    animation: pulse 2s ease infinite;
+  }
+
+  .reveal-area {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    animation: fadeIn 0.3s ease;
+  }
+  .reveal-area.visible { display: flex; }
+
+  .word-card {
+    background: var(--card);
+    border: 2px solid var(--card-border);
+    border-radius: 20px;
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 320px;
+    text-align: center;
+  }
+
+  .word-card.imposter {
+    border-color: var(--danger);
+    background: rgba(255, 71, 87, 0.1);
+  }
+
+  .word-label {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+
+  .word-text {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .word-card.imposter .word-text {
+    color: var(--danger);
+  }
+
+  .word-hint {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-top: 12px;
+  }
+
+  .tap-area {
+    width: 100%;
+    max-width: 360px;
+    cursor: pointer;
+  }
+
+  /* ===== DISCUSSION ===== */
+  #discussion { justify-content: center; gap: 32px; text-align: center; }
+
+  .timer-ring {
+    position: relative;
+    width: 200px;
+    height: 200px;
+  }
+
+  .timer-ring svg {
+    transform: rotate(-90deg);
+    width: 200px;
+    height: 200px;
+  }
+
+  .timer-ring circle {
+    fill: none;
+    stroke-width: 6;
+  }
+
+  .timer-bg { stroke: var(--card-border); }
+  .timer-fg {
+    stroke: var(--accent);
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear, stroke 0.3s;
+  }
+  .timer-fg.warning { stroke: var(--danger); }
+
+  .timer-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .discussion-info {
+    font-size: 15px;
+    color: var(--text-dim);
+    max-width: 300px;
+    line-height: 1.5;
+  }
+
+  .timer-controls {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    max-width: 360px;
+  }
+  .timer-controls .btn { flex: 1; }
+
+  /* ===== VOTING ===== */
+  #voting { gap: 20px; }
+
+  .vote-info {
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .vote-info .player-badge { margin-bottom: 4px; }
+  .vote-info h2 { font-size: 24px; font-weight: 700; }
+
+  .vote-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .vote-btn {
+    padding: 20px 12px;
+    border-radius: 14px;
+    background: var(--card);
+    border: 2px solid var(--card-border);
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .vote-btn:active { transform: scale(0.97); }
+  .vote-btn.selected {
+    border-color: var(--danger);
+    background: rgba(255, 71, 87, 0.15);
+  }
+  .vote-btn .vote-player-num {
+    font-size: 32px;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 4px;
+    color: var(--accent);
+  }
+
+  .vote-submit {
+    width: 100%;
+    max-width: 400px;
+    margin-top: auto;
+    padding-top: 16px;
+  }
+
+  /* ===== RESULTS ===== */
+  #results { justify-content: center; gap: 24px; text-align: center; }
+
+  .result-icon {
+    font-size: 80px;
+    animation: slideUp 0.5s ease;
+  }
+
+  .result-title {
+    font-size: 28px;
+    font-weight: 800;
+    animation: slideUp 0.5s ease 0.1s both;
+  }
+  .result-title.crew-win { color: var(--success); }
+  .result-title.imposter-win { color: var(--danger); }
+
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    width: 100%;
+    max-width: 360px;
+    animation: slideUp 0.5s ease 0.2s both;
+  }
+
+  .result-card h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .result-word {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .result-imposters {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--danger);
+    margin-top: 12px;
+  }
+
+  .vote-summary {
+    width: 100%;
+    max-width: 360px;
+    animation: slideUp 0.5s ease 0.3s both;
+  }
+
+  .vote-summary h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+
+  .vote-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--card);
+    margin-bottom: 6px;
+  }
+  .vote-row.is-imposter {
+    border: 1px solid var(--danger);
+    background: rgba(255, 71, 87, 0.08);
+  }
+  .vote-row-name { font-weight: 600; }
+  .vote-row-count {
+    font-weight: 700;
+    color: var(--text-dim);
+  }
+  .vote-row.is-imposter .vote-row-name::after {
+    content: " (Imposter)";
+    color: var(--danger);
+    font-size: 12px;
+  }
+
+  .result-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 360px;
+    animation: slideUp 0.5s ease 0.4s both;
+  }
+
+  /* ===== HOW TO PLAY ===== */
+  #howto { gap: 20px; }
+
+  .rules-list {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .rule-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--card);
+    border-radius: 14px;
+    padding: 16px;
+    border: 1px solid var(--card-border);
+    animation: slideUp 0.4s ease both;
+  }
+  .rule-item:nth-child(2) { animation-delay: 0.05s; }
+  .rule-item:nth-child(3) { animation-delay: 0.1s; }
+  .rule-item:nth-child(4) { animation-delay: 0.15s; }
+  .rule-item:nth-child(5) { animation-delay: 0.2s; }
+
+  .rule-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .rule-text {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .rule-text strong { color: var(--accent); }
+
+  .howto-back {
+    margin-top: auto;
+    width: 100%;
+    max-width: 400px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HOME SCREEN ===== -->
+<div id="home" class="screen active">
+  <div class="logo-area">
+    <div class="logo-icon">🕵️</div>
+    <div class="logo-title">Sports Imposter</div>
+    <div class="logo-subtitle">Who doesn't belong?</div>
+  </div>
+  <div class="home-actions">
+    <button class="btn btn-primary" onclick="showScreen('setup')">New Game</button>
+    <button class="btn btn-secondary" onclick="showScreen('howto')">How to Play</button>
+  </div>
+</div>
+
+<!-- ===== SETUP SCREEN ===== -->
+<div id="setup" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('home')">← Back</button>
+    <div class="screen-title">Game Setup</div>
+  </div>
+
+  <div class="setup-section">
+    <div class="section-label">Category</div>
+    <div class="option-grid">
+      <button class="option-btn" data-cat="ufc" onclick="selectOption('category', 'ufc', this)">
+        <span class="opt-emoji">🥊</span> UFC
+      </button>
+      <button class="option-btn" data-cat="soccer" onclick="selectOption('category', 'soccer', this)">
+        <span class="opt-emoji">⚽</span> Soccer
+      </button>
+      <button class="option-btn" data-cat="basketball" onclick="selectOption('category', 'basketball', this)">
+        <span class="opt-emoji">🏀</span> Basketball
+      </button>
+      <button class="option-btn" data-cat="football" onclick="selectOption('category', 'football', this)">
+        <span class="opt-emoji">🏈</span> Football
+      </button>
+    </div>
+  </div>
+
+  <div class="setup-section">
+    <div class="section-label">Difficulty</div>
+    <div class="option-grid">
+      <button class="option-btn" onclick="selectOption('difficulty', 'easy', this)">Easy</button>
+      <button class="option-btn" onclick="selectOption('difficulty', 'medium', this)">Medium</button>
+      <button class="option-btn" onclick="selectOption('difficulty', 'hard', this)">Hard</button>
+      <button class="option-btn" onclick="selectOption('difficulty', 'expert', this)">Expert</button>
+    </div>
+  </div>
+
+  <div class="setup-section">
+    <div class="section-label">Players</div>
+    <div class="stepper">
+      <button class="stepper-btn" onclick="adjustPlayers(-1)">−</button>
+      <span class="stepper-val" id="playerCount">4</span>
+      <button class="stepper-btn" onclick="adjustPlayers(1)">+</button>
+    </div>
+  </div>
+
+  <div class="setup-section">
+    <div class="section-label">Imposters</div>
+    <div class="stepper">
+      <button class="stepper-btn" onclick="adjustImposters(-1)">−</button>
+      <span class="stepper-val" id="imposterCount">1</span>
+      <button class="stepper-btn" onclick="adjustImposters(1)">+</button>
+    </div>
+  </div>
+
+  <div class="start-area">
+    <button class="btn btn-primary" onclick="startGame()">Start Game</button>
+  </div>
+</div>
+
+<!-- ===== PASS & PLAY ===== -->
+<div id="passplay" class="screen">
+  <div class="player-badge">Pass to</div>
+  <div class="player-number" id="currentPlayerNum">1</div>
+  <div class="tap-prompt" id="tapPrompt">Tap to reveal your role</div>
+
+  <div class="tap-area">
+    <button class="btn btn-secondary" id="revealBtn" onclick="revealWord()">Tap to Reveal</button>
+  </div>
+
+  <div class="reveal-area" id="revealArea">
+    <div class="word-card" id="wordCard">
+      <div class="word-label" id="wordLabel">Your word</div>
+      <div class="word-text" id="wordText"></div>
+      <div class="word-hint" id="wordHint"></div>
+    </div>
+    <button class="btn btn-primary" id="gotItBtn" onclick="nextPlayer()">Got it</button>
+  </div>
+</div>
+
+<!-- ===== DISCUSSION ===== -->
+<div id="discussion" class="screen">
+  <div class="screen-title" style="margin-bottom: 8px;">Discussion Time</div>
+  <div class="discussion-info">Take turns describing the word without saying it. Find the imposter!</div>
+
+  <div class="timer-ring">
+    <svg viewBox="0 0 200 200">
+      <circle class="timer-bg" cx="100" cy="100" r="90"/>
+      <circle class="timer-fg" id="timerCircle" cx="100" cy="100" r="90"
+        stroke-dasharray="565.48" stroke-dashoffset="0"/>
+    </svg>
+    <div class="timer-text" id="timerText">3:00</div>
+  </div>
+
+  <div class="timer-controls">
+    <button class="btn btn-secondary btn-small" id="timerToggle" onclick="toggleTimer()">Pause</button>
+    <button class="btn btn-primary btn-small" onclick="endDiscussion()">Vote Now</button>
+  </div>
+</div>
+
+<!-- ===== VOTING ===== -->
+<div id="voting" class="screen">
+  <div class="screen-header">
+    <div class="screen-title" style="margin-right:0">Voting</div>
+  </div>
+
+  <div class="vote-info">
+    <div class="player-badge" id="voterLabel">Player 1's turn to vote</div>
+    <h2>Who is the Imposter?</h2>
+  </div>
+
+  <div class="vote-grid" id="voteGrid"></div>
+
+  <div class="vote-submit">
+    <button class="btn btn-danger" id="castVoteBtn" onclick="castVote()" disabled>Cast Vote</button>
+  </div>
+</div>
+
+<!-- ===== RESULTS ===== -->
+<div id="results" class="screen">
+  <div class="result-icon" id="resultIcon"></div>
+  <div class="result-title" id="resultTitle"></div>
+
+  <div class="result-card">
+    <h3>The Secret Word</h3>
+    <div class="result-word" id="resultWord"></div>
+    <div class="result-imposters" id="resultImposters"></div>
+  </div>
+
+  <div class="vote-summary" id="voteSummary">
+    <h3>Vote Results</h3>
+  </div>
+
+  <div class="result-actions">
+    <button class="btn btn-primary" onclick="playAgain()">Play Again</button>
+    <button class="btn btn-secondary" onclick="showScreen('home')">Main Menu</button>
+  </div>
+</div>
+
+<!-- ===== HOW TO PLAY ===== -->
+<div id="howto" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('home')">← Back</button>
+    <div class="screen-title">How to Play</div>
+  </div>
+
+  <div class="rules-list">
+    <div class="rule-item">
+      <div class="rule-num">1</div>
+      <div class="rule-text">Choose a <strong>sport category</strong>, difficulty, and number of players. One or two players will secretly be the <strong>Imposter</strong>.</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-num">2</div>
+      <div class="rule-text"><strong>Pass the phone</strong> around. Each player taps to see their word. The Imposter sees only the category - not the word!</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-num">3</div>
+      <div class="rule-text">Players take turns <strong>describing the word</strong> without saying it. Be vague enough that the Imposter can't guess, but clear enough to prove you know it.</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-num">4</div>
+      <div class="rule-text">After discussion, everyone <strong>votes</strong> on who they think the Imposter is. The Imposter tries to blend in!</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-num">5</div>
+      <div class="rule-text">If the group catches the Imposter, <strong>they win!</strong> If the Imposter survives, <strong>they win!</strong></div>
+    </div>
+  </div>
+
+  <div class="howto-back">
+    <button class="btn btn-primary" onclick="showScreen('home')">Got it!</button>
+  </div>
+</div>
+
+<script>
+// ===== WORD DATABASE =====
+const WORDS = {
+  ufc: {
+    easy: [
+      { word: "Conor McGregor", hint: "Fighter" },
+      { word: "Khabib Nurmagomedov", hint: "Fighter" },
+      { word: "Jon Jones", hint: "Fighter" },
+      { word: "Israel Adesanya", hint: "Fighter" },
+      { word: "Amanda Nunes", hint: "Fighter" },
+      { word: "Ronda Rousey", hint: "Fighter" },
+      { word: "Nate Diaz", hint: "Fighter" },
+      { word: "Jorge Masvidal", hint: "Fighter" },
+      { word: "Francis Ngannou", hint: "Fighter" },
+      { word: "Kamaru Usman", hint: "Fighter" },
+      { word: "Dustin Poirier", hint: "Fighter" },
+      { word: "Max Holloway", hint: "Fighter" },
+      { word: "Rose Namajunas", hint: "Fighter" },
+      { word: "Dana White", hint: "Person" },
+      { word: "Octagon", hint: "Place" },
+    ],
+    medium: [
+      { word: "Alex Pereira", hint: "Fighter" },
+      { word: "Islam Makhachev", hint: "Fighter" },
+      { word: "Charles Oliveira", hint: "Fighter" },
+      { word: "Sean O'Malley", hint: "Fighter" },
+      { word: "Valentina Shevchenko", hint: "Fighter" },
+      { word: "Deiveson Figueiredo", hint: "Fighter" },
+      { word: "Zhang Weili", hint: "Fighter" },
+      { word: "Leon Edwards", hint: "Fighter" },
+      { word: "Aljamain Sterling", hint: "Fighter" },
+      { word: "Alexander Volkanovski", hint: "Fighter" },
+      { word: "Jiri Prochazka", hint: "Fighter" },
+      { word: "Dricus Du Plessis", hint: "Fighter" },
+      { word: "Brandon Moreno", hint: "Fighter" },
+      { word: "Petr Yan", hint: "Fighter" },
+      { word: "Tai Tuivasa", hint: "Fighter" },
+    ],
+    hard: [
+      { word: "Khabib jumping the cage", hint: "Moment" },
+      { word: "McGregor bus attack", hint: "Incident" },
+      { word: "Ngannou uppercut KO of Overeem", hint: "Moment" },
+      { word: "Tony Ferguson tripping on cables", hint: "Incident" },
+      { word: "The BMF Title", hint: "Thing" },
+      { word: "UFC 229 brawl", hint: "Event" },
+      { word: "Masvidal flying knee on Askren", hint: "Moment" },
+      { word: "Rose headkick KO of Weili", hint: "Moment" },
+      { word: "Oliveira being stripped on the scale", hint: "Incident" },
+      { word: "Leon Edwards headkick vs Usman", hint: "Moment" },
+      { word: "Derrick Lewis post-fight interview", hint: "Moment" },
+      { word: "McGregor leg break vs Poirier", hint: "Moment" },
+      { word: "UFC Apex", hint: "Place" },
+      { word: "Fight Island", hint: "Place" },
+      { word: "Holloway vs Kattar beatdown", hint: "Event" },
+    ],
+    expert: [
+      { word: "Sean Strickland upset vs Adesanya", hint: "Moment" },
+      { word: "Bryce Mitchell twister submission", hint: "Moment" },
+      { word: "Merab Dvalishvili octagon interview", hint: "Moment" },
+      { word: "Paddy Pimblett post-fight speech on mental health", hint: "Moment" },
+      { word: "Bo Nickal hype train", hint: "Thing" },
+      { word: "Belal Muhammad 'Remember the Name'", hint: "Person" },
+      { word: "Ian Garry undefeated run", hint: "Thing" },
+      { word: "Jamahal Hill upset title win", hint: "Moment" },
+      { word: "Tom Aspinall injury in first round", hint: "Moment" },
+      { word: "Movsar Evloev winning streak", hint: "Thing" },
+      { word: "UFC PI (Performance Institute)", hint: "Place" },
+      { word: "Shavkat Rakhmonov finishing streak", hint: "Thing" },
+      { word: "Ilia Topuria KO of Volkanovski", hint: "Moment" },
+      { word: "Calvin Kattar comeback vs Giga", hint: "Moment" },
+      { word: "Ciryl Gane vs Ngannou title unification", hint: "Event" },
+    ],
+  },
+  soccer: {
+    easy: [
+      { word: "Lionel Messi", hint: "Player" },
+      { word: "Cristiano Ronaldo", hint: "Player" },
+      { word: "Neymar", hint: "Player" },
+      { word: "Kylian Mbappe", hint: "Player" },
+      { word: "Erling Haaland", hint: "Player" },
+      { word: "Mohamed Salah", hint: "Player" },
+      { word: "Robert Lewandowski", hint: "Player" },
+      { word: "Luka Modric", hint: "Player" },
+      { word: "Kevin De Bruyne", hint: "Player" },
+      { word: "Virgil van Dijk", hint: "Player" },
+      { word: "Penalty Kick", hint: "Thing" },
+      { word: "World Cup", hint: "Event" },
+      { word: "Champions League", hint: "Event" },
+      { word: "Red Card", hint: "Thing" },
+      { word: "Hat Trick", hint: "Thing" },
+    ],
+    medium: [
+      { word: "Jude Bellingham", hint: "Player" },
+      { word: "Vinicius Jr", hint: "Player" },
+      { word: "Pedri", hint: "Player" },
+      { word: "Bukayo Saka", hint: "Player" },
+      { word: "Phil Foden", hint: "Player" },
+      { word: "Rodri", hint: "Player" },
+      { word: "Thibaut Courtois", hint: "Player" },
+      { word: "Lamine Yamal", hint: "Player" },
+      { word: "Federico Valverde", hint: "Player" },
+      { word: "Florian Wirtz", hint: "Player" },
+      { word: "Son Heung-min", hint: "Player" },
+      { word: "Bruno Fernandes", hint: "Player" },
+      { word: "Jamal Musiala", hint: "Player" },
+      { word: "Alisson Becker", hint: "Player" },
+      { word: "Bernardo Silva", hint: "Player" },
+    ],
+    hard: [
+      { word: "Aguero 93:20 moment", hint: "Moment" },
+      { word: "Leicester winning the Premier League", hint: "Event" },
+      { word: "Messi to Inter Miami", hint: "Event" },
+      { word: "Liverpool comeback vs Barcelona 4-0", hint: "Event" },
+      { word: "Tottenham Ajax semifinal comeback", hint: "Event" },
+      { word: "VAR controversy", hint: "Thing" },
+      { word: "Messi World Cup final 2022", hint: "Event" },
+      { word: "Ronaldo leaving Manchester United", hint: "Event" },
+      { word: "Suarez handball vs Ghana", hint: "Moment" },
+      { word: "Germany 7-1 Brazil", hint: "Event" },
+      { word: "Bale bicycle kick Champions League final", hint: "Moment" },
+      { word: "Klopp fist pump celebration", hint: "Moment" },
+      { word: "Iceland clap celebration at Euros", hint: "Moment" },
+      { word: "PSG bottling the Champions League", hint: "Event" },
+      { word: "Tiki-taka", hint: "Thing" },
+    ],
+    expert: [
+      { word: "Emi Martinez keeper antics", hint: "Moment" },
+      { word: "Morocco 2022 World Cup semifinal run", hint: "Event" },
+      { word: "Japan beating Germany and Spain in 2022", hint: "Event" },
+      { word: "Haaland five goals vs Luton Town", hint: "Moment" },
+      { word: "Richarlison bicycle kick vs Serbia", hint: "Moment" },
+      { word: "Tim Weah red card vs Panama", hint: "Moment" },
+      { word: "Saudi Arabia beating Argentina in 2022", hint: "Event" },
+      { word: "Giroud becoming France all-time top scorer", hint: "Moment" },
+      { word: "Xavi rebuilding Barcelona", hint: "Event" },
+      { word: "Newcastle Saudi takeover", hint: "Event" },
+      { word: "Man City financial charges", hint: "Event" },
+      { word: "Super League controversy", hint: "Event" },
+      { word: "Endrick joining Real Madrid", hint: "Event" },
+      { word: "USMNT failing to qualify for 2018 World Cup", hint: "Event" },
+      { word: "Wrexham promotion run", hint: "Event" },
+    ],
+  },
+  basketball: {
+    easy: [
+      { word: "LeBron James", hint: "Player" },
+      { word: "Stephen Curry", hint: "Player" },
+      { word: "Kevin Durant", hint: "Player" },
+      { word: "Giannis Antetokounmpo", hint: "Player" },
+      { word: "Luka Doncic", hint: "Player" },
+      { word: "James Harden", hint: "Player" },
+      { word: "Anthony Davis", hint: "Player" },
+      { word: "Kyrie Irving", hint: "Player" },
+      { word: "Russell Westbrook", hint: "Player" },
+      { word: "Kawhi Leonard", hint: "Player" },
+      { word: "Slam Dunk", hint: "Thing" },
+      { word: "Three Pointer", hint: "Thing" },
+      { word: "NBA Finals", hint: "Event" },
+      { word: "Alley-Oop", hint: "Thing" },
+      { word: "March Madness", hint: "Event" },
+    ],
+    medium: [
+      { word: "Jayson Tatum", hint: "Player" },
+      { word: "Anthony Edwards", hint: "Player" },
+      { word: "Ja Morant", hint: "Player" },
+      { word: "Nikola Jokic", hint: "Player" },
+      { word: "Joel Embiid", hint: "Player" },
+      { word: "Devin Booker", hint: "Player" },
+      { word: "Donovan Mitchell", hint: "Player" },
+      { word: "Jaylen Brown", hint: "Player" },
+      { word: "Shai Gilgeous-Alexander", hint: "Player" },
+      { word: "Tyrese Haliburton", hint: "Player" },
+      { word: "Trae Young", hint: "Player" },
+      { word: "Bam Adebayo", hint: "Player" },
+      { word: "Paul George", hint: "Player" },
+      { word: "Damian Lillard", hint: "Player" },
+      { word: "Victor Wembanyama", hint: "Player" },
+    ],
+    hard: [
+      { word: "The Kawhi Bounce vs 76ers", hint: "Moment" },
+      { word: "The Block - LeBron Finals 2016", hint: "Moment" },
+      { word: "Bubble Finals 2020", hint: "Event" },
+      { word: "Warriors 73-9 season", hint: "Event" },
+      { word: "KD joining the Warriors", hint: "Event" },
+      { word: "Kobe's 60-point final game", hint: "Moment" },
+      { word: "Dame's wave goodbye vs OKC", hint: "Moment" },
+      { word: "Giannis 50-point Finals closeout", hint: "Moment" },
+      { word: "Kyrie's flat earth saga", hint: "Event" },
+      { word: "Harden trade request era", hint: "Event" },
+      { word: "LeBron breaking the scoring record", hint: "Moment" },
+      { word: "Ben Simmons not shooting", hint: "Moment" },
+      { word: "Jimmy Butler bubble run", hint: "Event" },
+      { word: "Steph Curry half-court shots", hint: "Thing" },
+      { word: "Luka Doncic step-back three", hint: "Thing" },
+    ],
+    expert: [
+      { word: "Trae Young villain arc at MSG", hint: "Moment" },
+      { word: "Victor Wembanyama draft lottery hype", hint: "Event" },
+      { word: "Cancun on 3 (play-in loss)", hint: "Moment" },
+      { word: "Austin Reaves breakout", hint: "Event" },
+      { word: "Jokic triple-double machine era", hint: "Thing" },
+      { word: "Paolo Banchero rookie season", hint: "Event" },
+      { word: "OKC Thunder rebuild tank era", hint: "Event" },
+      { word: "Ant-Man dunk on Rudy Gobert", hint: "Moment" },
+      { word: "Chet Holmgren debut season", hint: "Event" },
+      { word: "Kings ending playoff drought", hint: "Event" },
+      { word: "Heat Culture", hint: "Thing" },
+      { word: "Ja Morant gun incident", hint: "Event" },
+      { word: "Josh Giddey trade to Bulls", hint: "Event" },
+      { word: "Celtics big 3 with Kristaps Porzingis", hint: "Event" },
+      { word: "Zion Williamson weight saga", hint: "Event" },
+    ],
+  },
+  football: {
+    easy: [
+      { word: "Patrick Mahomes", hint: "Player" },
+      { word: "Travis Kelce", hint: "Player" },
+      { word: "Lamar Jackson", hint: "Player" },
+      { word: "Josh Allen", hint: "Player" },
+      { word: "Tyreek Hill", hint: "Player" },
+      { word: "Aaron Donald", hint: "Player" },
+      { word: "Derrick Henry", hint: "Player" },
+      { word: "Dak Prescott", hint: "Player" },
+      { word: "Justin Jefferson", hint: "Player" },
+      { word: "Jalen Hurts", hint: "Player" },
+      { word: "Super Bowl", hint: "Event" },
+      { word: "Touchdown", hint: "Thing" },
+      { word: "Hail Mary", hint: "Thing" },
+      { word: "NFL Draft", hint: "Event" },
+      { word: "Quarterback", hint: "Position" },
+    ],
+    medium: [
+      { word: "Micah Parsons", hint: "Player" },
+      { word: "Nick Bosa", hint: "Player" },
+      { word: "CeeDee Lamb", hint: "Player" },
+      { word: "Ja'Marr Chase", hint: "Player" },
+      { word: "Sauce Gardner", hint: "Player" },
+      { word: "T.J. Watt", hint: "Player" },
+      { word: "Joe Burrow", hint: "Player" },
+      { word: "Tua Tagovailoa", hint: "Player" },
+      { word: "Caleb Williams", hint: "Player" },
+      { word: "Jayden Daniels", hint: "Player" },
+      { word: "Brock Purdy", hint: "Player" },
+      { word: "Amon-Ra St. Brown", hint: "Player" },
+      { word: "Stefon Diggs", hint: "Player" },
+      { word: "Saquon Barkley", hint: "Player" },
+      { word: "Davante Adams", hint: "Player" },
+    ],
+    hard: [
+      { word: "Philly Special", hint: "Moment" },
+      { word: "28-3 Super Bowl comeback", hint: "Event" },
+      { word: "Diggs Sideline Touchdown Minneapolis Miracle", hint: "Moment" },
+      { word: "Mahomes no-look pass", hint: "Thing" },
+      { word: "Tom Brady leaving New England", hint: "Event" },
+      { word: "Tua concussion protocol controversy", hint: "Event" },
+      { word: "Bengals Super Bowl run 2022", hint: "Event" },
+      { word: "Butt Fumble", hint: "Moment" },
+      { word: "OBJ one-handed catch", hint: "Moment" },
+      { word: "Antonio Brown walking off the field", hint: "Moment" },
+      { word: "Tyreek Hill peace sign touchdown", hint: "Moment" },
+      { word: "Russell Wilson cooking memes", hint: "Thing" },
+      { word: "Lamar Jackson MVP unanimous vote", hint: "Event" },
+      { word: "Jalen Hurts rushing touchdowns", hint: "Thing" },
+      { word: "Chiefs dynasty three-peat chase", hint: "Event" },
+    ],
+    expert: [
+      { word: "Kadarius Toney trick play Super Bowl", hint: "Moment" },
+      { word: "Brock Purdy Mr. Irrelevant to starter", hint: "Event" },
+      { word: "Bengals ending playoff drought", hint: "Event" },
+      { word: "Damar Hamlin cardiac arrest on field", hint: "Event" },
+      { word: "Toney lateral play vs Eagles", hint: "Moment" },
+      { word: "Sauce Gardner DROY season", hint: "Event" },
+      { word: "Gardner Minshew mustache era", hint: "Thing" },
+      { word: "Dan Campbell kneecap biting speech", hint: "Moment" },
+      { word: "Lions first NFC Championship appearance", hint: "Event" },
+      { word: "Texans drafting C.J. Stroud", hint: "Event" },
+      { word: "Will Anderson Jr sack record pace", hint: "Thing" },
+      { word: "Bears trading #1 pick saga", hint: "Event" },
+      { word: "Jaguars comeback from 27 down vs Chargers", hint: "Event" },
+      { word: "Tyreek Hill airport video", hint: "Event" },
+      { word: "Travis Kelce Taylor Swift era", hint: "Thing" },
+    ],
+  },
+};
+
+// ===== GAME STATE =====
+let game = {
+  category: null,
+  difficulty: null,
+  playerCount: 4,
+  imposterCount: 1,
+  imposters: [],
+  word: null,
+  currentPlayer: 0,
+  votes: {},
+  currentVoter: 0,
+  selectedVote: null,
+  timerInterval: null,
+  timeLeft: 180,
+  timerRunning: false,
+  usedWords: new Set(),
+};
+
+// ===== NAVIGATION =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+
+  if (id === 'passplay') resetPassPlay();
+  if (id === 'voting') setupVoting();
+}
+
+// ===== SETUP =====
+function selectOption(type, value, el) {
+  const parent = el.closest('.option-grid');
+  parent.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  game[type] = value;
+}
+
+function adjustPlayers(delta) {
+  game.playerCount = Math.min(10, Math.max(3, game.playerCount + delta));
+  document.getElementById('playerCount').textContent = game.playerCount;
+  if (game.imposterCount >= game.playerCount - 1) {
+    game.imposterCount = Math.max(1, game.playerCount - 2);
+    document.getElementById('imposterCount').textContent = game.imposterCount;
+  }
+}
+
+function adjustImposters(delta) {
+  game.imposterCount = Math.min(Math.min(3, game.playerCount - 2), Math.max(1, game.imposterCount + delta));
+  document.getElementById('imposterCount').textContent = game.imposterCount;
+}
+
+function startGame() {
+  if (!game.category || !game.difficulty) {
+    alert('Please select a category and difficulty!');
+    return;
+  }
+
+  const wordPool = WORDS[game.category][game.difficulty];
+  let available = wordPool.filter(w => !game.usedWords.has(w.word));
+  // If all words used, reset the tracker for this pool
+  if (available.length === 0) {
+    game.usedWords.clear();
+    available = wordPool;
+  }
+  const chosen = available[Math.floor(Math.random() * available.length)];
+  game.usedWords.add(chosen.word);
+  game.word = chosen;
+
+  // Pick random imposters
+  game.imposters = [];
+  const playerIndices = Array.from({ length: game.playerCount }, (_, i) => i);
+  for (let i = 0; i < game.imposterCount; i++) {
+    const randIdx = Math.floor(Math.random() * playerIndices.length);
+    game.imposters.push(playerIndices.splice(randIdx, 1)[0]);
+  }
+
+  game.currentPlayer = 0;
+  game.votes = {};
+  game.currentVoter = 0;
+  game.selectedVote = null;
+  game.timeLeft = 180;
+
+  showScreen('passplay');
+}
+
+// ===== PASS & PLAY =====
+function resetPassPlay() {
+  document.getElementById('currentPlayerNum').textContent = game.currentPlayer + 1;
+  document.getElementById('revealBtn').style.display = '';
+  document.getElementById('tapPrompt').style.display = '';
+  document.getElementById('revealArea').classList.remove('visible');
+}
+
+function revealWord() {
+  document.getElementById('revealBtn').style.display = 'none';
+  document.getElementById('tapPrompt').style.display = 'none';
+
+  const card = document.getElementById('wordCard');
+  const label = document.getElementById('wordLabel');
+  const text = document.getElementById('wordText');
+  const hint = document.getElementById('wordHint');
+
+  if (game.imposters.includes(game.currentPlayer)) {
+    card.classList.add('imposter');
+    label.textContent = '🚨 You are the';
+    text.textContent = 'IMPOSTER';
+    const catNames = { ufc: 'UFC', soccer: 'Soccer', basketball: 'Basketball', football: 'Football' };
+    hint.textContent = `Category: ${catNames[game.category]}`;
+  } else {
+    card.classList.remove('imposter');
+    label.textContent = 'Your word is';
+    text.textContent = game.word.word;
+    hint.textContent = '';
+  }
+
+  document.getElementById('revealArea').classList.add('visible');
+}
+
+function nextPlayer() {
+  game.currentPlayer++;
+  if (game.currentPlayer >= game.playerCount) {
+    startDiscussion();
+  } else {
+    resetPassPlay();
+  }
+}
+
+// ===== DISCUSSION =====
+function startDiscussion() {
+  showScreen('discussion');
+  game.timeLeft = 180;
+  game.timerRunning = true;
+  document.getElementById('timerToggle').textContent = 'Pause';
+  updateTimerDisplay();
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(game.timerInterval);
+  game.timerInterval = setInterval(() => {
+    if (!game.timerRunning) return;
+    game.timeLeft--;
+    updateTimerDisplay();
+    if (game.timeLeft <= 0) {
+      clearInterval(game.timerInterval);
+      endDiscussion();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const mins = Math.floor(game.timeLeft / 60);
+  const secs = game.timeLeft % 60;
+  document.getElementById('timerText').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+  const circle = document.getElementById('timerCircle');
+  const circumference = 2 * Math.PI * 90;
+  const progress = 1 - (game.timeLeft / 180);
+  circle.style.strokeDashoffset = progress * circumference;
+
+  if (game.timeLeft <= 30) {
+    circle.classList.add('warning');
+  } else {
+    circle.classList.remove('warning');
+  }
+}
+
+function toggleTimer() {
+  game.timerRunning = !game.timerRunning;
+  document.getElementById('timerToggle').textContent = game.timerRunning ? 'Pause' : 'Resume';
+}
+
+function endDiscussion() {
+  clearInterval(game.timerInterval);
+  game.currentVoter = 0;
+  game.votes = {};
+  game.selectedVote = null;
+  showScreen('voting');
+}
+
+// ===== VOTING =====
+function setupVoting() {
+  document.getElementById('voterLabel').textContent = `Player ${game.currentVoter + 1}'s turn to vote`;
+  game.selectedVote = null;
+  document.getElementById('castVoteBtn').disabled = true;
+
+  const grid = document.getElementById('voteGrid');
+  grid.innerHTML = '';
+
+  for (let i = 0; i < game.playerCount; i++) {
+    if (i === game.currentVoter) continue;
+    const btn = document.createElement('button');
+    btn.className = 'vote-btn';
+    btn.innerHTML = `<span class="vote-player-num">${i + 1}</span>Player ${i + 1}`;
+    btn.onclick = () => selectVoteTarget(i, btn);
+    grid.appendChild(btn);
+  }
+}
+
+function selectVoteTarget(playerIdx, btn) {
+  document.querySelectorAll('.vote-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  game.selectedVote = playerIdx;
+  document.getElementById('castVoteBtn').disabled = false;
+}
+
+function castVote() {
+  if (game.selectedVote === null) return;
+
+  if (!game.votes[game.selectedVote]) game.votes[game.selectedVote] = 0;
+  game.votes[game.selectedVote]++;
+
+  game.currentVoter++;
+  if (game.currentVoter >= game.playerCount) {
+    showResults();
+  } else {
+    setupVoting();
+  }
+}
+
+// ===== RESULTS =====
+function showResults() {
+  // Find most voted player
+  let maxVotes = 0;
+  let mostVoted = -1;
+  for (const [player, count] of Object.entries(game.votes)) {
+    if (count > maxVotes) {
+      maxVotes = count;
+      mostVoted = parseInt(player);
+    }
+  }
+
+  const imposterCaught = game.imposters.includes(mostVoted);
+
+  document.getElementById('resultIcon').textContent = imposterCaught ? '🎉' : '🕵️';
+  const titleEl = document.getElementById('resultTitle');
+  titleEl.textContent = imposterCaught ? 'Crew Wins!' : 'Imposter Wins!';
+  titleEl.className = 'result-title ' + (imposterCaught ? 'crew-win' : 'imposter-win');
+
+  document.getElementById('resultWord').textContent = game.word.word;
+
+  const imposterNames = game.imposters.map(i => `Player ${i + 1}`).join(', ');
+  document.getElementById('resultImposters').textContent = `Imposter: ${imposterNames}`;
+
+  // Vote summary
+  const summary = document.getElementById('voteSummary');
+  let summaryHTML = '<h3>Vote Results</h3>';
+  for (let i = 0; i < game.playerCount; i++) {
+    const voteCount = game.votes[i] || 0;
+    const isImposter = game.imposters.includes(i);
+    summaryHTML += `
+      <div class="vote-row ${isImposter ? 'is-imposter' : ''}">
+        <span class="vote-row-name">Player ${i + 1}</span>
+        <span class="vote-row-count">${voteCount} vote${voteCount !== 1 ? 's' : ''}</span>
+      </div>`;
+  }
+  summary.innerHTML = summaryHTML;
+
+  showScreen('results');
+}
+
+function playAgain() {
+  game.currentPlayer = 0;
+  game.votes = {};
+  game.currentVoter = 0;
+  game.selectedVote = null;
+  startGame();
+}
+</script>
+</body>
+</html>
