@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Wallet">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f2f2f7">
+<title>Wallet</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --tm-blue: #0057FF;
+    --tm-label: #5BB8FF;
+    --card-bg: #1B2140;
+  }
+
+  html, body {
+    height: 100%;
+    background: #F2F2F7;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  .screen {
+    max-width: 430px;
+    margin: 0 auto;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: #F2F2F7;
+    overflow: hidden;
+  }
+
+  /* ===== STATUS BAR ===== */
+  .status-bar {
+    padding-top: var(--safe-top);
+    background: #F2F2F7;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 18px;
+    padding-right: 18px;
+    padding-bottom: 0;
+    height: calc(var(--safe-top) + 44px);
+    min-height: 44px;
+    flex-shrink: 0;
+  }
+  .status-time { font-size: 15px; font-weight: 600; color: #000; letter-spacing: -0.3px; }
+  .status-right { display: flex; align-items: center; gap: 5px; }
+  .sig { display: flex; align-items: flex-end; gap: 1.5px; height: 12px; }
+  .sig span { display: block; width: 3px; background: #000; border-radius: 1px; }
+  .sig span:nth-child(1) { height: 4px; opacity: 0.4; }
+  .sig span:nth-child(2) { height: 6px; opacity: 0.6; }
+  .sig span:nth-child(3) { height: 8px; }
+  .sig span:nth-child(4) { height: 10px; }
+  .s5g { font-size: 13px; font-weight: 700; color: #000; }
+  .batt { display: flex; align-items: center; gap: 1px; }
+  .batt-body { width: 25px; height: 12px; border: 1.5px solid #000; border-radius: 3px; display: flex; align-items: center; padding: 1.5px; }
+  .batt-fill { height: 100%; width: 48%; background: #000; border-radius: 1px; }
+  .batt-tip { width: 2px; height: 6px; background: #000; border-radius: 0 1px 1px 0; }
+
+  /* ===== TOP NAV ===== */
+  .top-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 16px 14px;
+    flex-shrink: 0;
+  }
+
+  .close-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: #E0E0E5;
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .close-btn svg { width: 14px; height: 14px; }
+
+  .nav-center {
+    font-size: 17px;
+    font-weight: 600;
+    color: #000;
+    letter-spacing: -0.4px;
+  }
+
+  .add-all-btn {
+    background: #007AFF;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: -0.2px;
+  }
+
+  /* ===== SWIPE AREA ===== */
+  .swipe-outer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    padding-bottom: calc(var(--safe-bottom) + 12px);
+  }
+
+  .swipe-viewport {
+    width: 100%;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .swipe-track {
+    display: flex;
+    height: 100%;
+    will-change: transform;
+    transition: transform 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .slide {
+    min-width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 22px;
+  }
+
+  /* ===== WALLET TICKET CARD ===== */
+  .ticket {
+    width: 100%;
+    max-width: 345px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1);
+    position: relative;
+    background: var(--card-bg);
+  }
+
+  /* Notch cut at top */
+  .ticket::before {
+    content: '';
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #F2F2F7;
+    z-index: 10;
+    box-shadow: inset 0 -2px 4px rgba(0,0,0,0.15);
+  }
+
+  /* ===== TICKET HEADER ===== */
+  .ticket-header {
+    background: var(--card-bg);
+    padding: 22px 18px 14px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .tm-wordmark {
+    font-size: 19px;
+    font-weight: 700;
+    font-style: italic;
+    color: white;
+    letter-spacing: -0.5px;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    line-height: 1;
+  }
+
+  .ticket-datetime {
+    text-align: right;
+  }
+  .ticket-time {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--tm-label);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .ticket-date {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: -0.3px;
+    margin-top: 1px;
+  }
+
+  /* ===== BLUE STRIPE ===== */
+  .ticket-stripe {
+    background: var(--tm-blue);
+    height: 118px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .tm-t-logo {
+    font-size: 76px;
+    font-weight: 700;
+    font-style: italic;
+    color: white;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    letter-spacing: -2px;
+    line-height: 1;
+    user-select: none;
+    /* Ticketmaster "t" has a distinctive curved top */
+    text-shadow: none;
+  }
+
+  /* ===== TICKET BODY ===== */
+  .ticket-body {
+    background: var(--card-bg);
+    padding: 16px 18px 20px;
+  }
+
+  .venue-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--tm-label);
+    margin-bottom: 5px;
+  }
+
+  .event-name {
+    font-size: 19px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: -0.3px;
+    line-height: 1.25;
+    margin-bottom: 16px;
+  }
+
+  /* Section / Row / Seat */
+  .seat-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr 0.8fr;
+    gap: 0;
+    margin-bottom: 16px;
+  }
+
+  .seat-col {}
+  .seat-col-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--tm-label);
+    margin-bottom: 3px;
+  }
+  .seat-col-value {
+    font-size: 30px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+
+  /* Divider line */
+  .ticket-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+    margin: 0 0 16px;
+  }
+
+  /* Entry info / Ticket type */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .info-col-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--tm-label);
+    margin-bottom: 3px;
+  }
+  .info-col-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.2px;
+    line-height: 1.2;
+  }
+
+  /* ===== PAGE DOTS ===== */
+  .page-dots {
+    display: flex;
+    gap: 8px;
+    padding: 16px 0 8px;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #C7C7CC;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .dot.active {
+    background: #3C3C43;
+    width: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-time">4:46</div>
+    <div class="status-right">
+      <div class="sig"><span></span><span></span><span></span><span></span></div>
+      <div class="s5g">5G</div>
+      <div class="batt">
+        <div class="batt-body"><div class="batt-fill"></div></div>
+        <div class="batt-tip"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP NAV -->
+  <div class="top-nav">
+    <button class="close-btn">
+      <svg viewBox="0 0 14 14" fill="none">
+        <path d="M1 1L13 13M13 1L1 13" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <div class="nav-center">2 Tickets</div>
+    <button class="add-all-btn">Add All</button>
+  </div>
+
+  <!-- SWIPEABLE TICKETS -->
+  <div class="swipe-outer">
+    <div class="swipe-viewport" id="viewport">
+      <div class="swipe-track" id="track">
+
+        <!-- TICKET 1: Seat 7 -->
+        <div class="slide">
+          <div class="ticket">
+            <div class="ticket-header">
+              <div class="tm-wordmark">ticketmaster</div>
+              <div class="ticket-datetime">
+                <div class="ticket-time">5:00 PM</div>
+                <div class="ticket-date">May 9, 2026</div>
+              </div>
+            </div>
+
+            <div class="ticket-stripe">
+              <div class="tm-t-logo">t</div>
+            </div>
+
+            <div class="ticket-body">
+              <div class="venue-label">Prudential Center</div>
+              <div class="event-name">UFC 328: Chimaev v Strickland</div>
+
+              <div class="seat-grid">
+                <div class="seat-col">
+                  <div class="seat-col-label">Section</div>
+                  <div class="seat-col-value">C</div>
+                </div>
+                <div class="seat-col">
+                  <div class="seat-col-label">Row</div>
+                  <div class="seat-col-value">3</div>
+                </div>
+                <div class="seat-col">
+                  <div class="seat-col-label">Seat</div>
+                  <div class="seat-col-value">7</div>
+                </div>
+              </div>
+
+              <div class="ticket-divider"></div>
+
+              <div class="info-grid">
+                <div>
+                  <div class="info-col-label">Entry Info</div>
+                  <div class="info-col-value">FLOOR</div>
+                </div>
+                <div>
+                  <div class="info-col-label">Ticket Type</div>
+                  <div class="info-col-value">Standard Ticket</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TICKET 2: Seat 8 -->
+        <div class="slide">
+          <div class="ticket">
+            <div class="ticket-header">
+              <div class="tm-wordmark">ticketmaster</div>
+              <div class="ticket-datetime">
+                <div class="ticket-time">5:00 PM</div>
+                <div class="ticket-date">May 9, 2026</div>
+              </div>
+            </div>
+
+            <div class="ticket-stripe">
+              <div class="tm-t-logo">t</div>
+            </div>
+
+            <div class="ticket-body">
+              <div class="venue-label">Prudential Center</div>
+              <div class="event-name">UFC 328: Chimaev v Strickland</div>
+
+              <div class="seat-grid">
+                <div class="seat-col">
+                  <div class="seat-col-label">Section</div>
+                  <div class="seat-col-value">C</div>
+                </div>
+                <div class="seat-col">
+                  <div class="seat-col-label">Row</div>
+                  <div class="seat-col-value">3</div>
+                </div>
+                <div class="seat-col">
+                  <div class="seat-col-label">Seat</div>
+                  <div class="seat-col-value">8</div>
+                </div>
+              </div>
+
+              <div class="ticket-divider"></div>
+
+              <div class="info-grid">
+                <div>
+                  <div class="info-col-label">Entry Info</div>
+                  <div class="info-col-value">FLOOR</div>
+                </div>
+                <div>
+                  <div class="info-col-label">Ticket Type</div>
+                  <div class="info-col-value">Standard Ticket</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- track -->
+    </div><!-- viewport -->
+
+    <!-- PAGE DOTS -->
+    <div class="page-dots">
+      <div class="dot active" id="d0" onclick="goTo(0)"></div>
+      <div class="dot" id="d1" onclick="goTo(1)"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let cur = 0;
+  const total = 2;
+  const track = document.getElementById('track');
+  const vp = document.getElementById('viewport');
+
+  function goTo(i) {
+    cur = Math.max(0, Math.min(total - 1, i));
+    track.style.transform = `translateX(-${cur * vp.offsetWidth}px)`;
+    document.getElementById('d0').classList.toggle('active', cur === 0);
+    document.getElementById('d1').classList.toggle('active', cur === 1);
+  }
+
+  // Touch swipe
+  let tx = 0, ty = 0, horiz = null;
+  vp.addEventListener('touchstart', e => {
+    tx = e.touches[0].clientX;
+    ty = e.touches[0].clientY;
+    horiz = null;
+    track.style.transition = 'none';
+  }, { passive: true });
+
+  vp.addEventListener('touchmove', e => {
+    const dx = e.touches[0].clientX - tx;
+    const dy = e.touches[0].clientY - ty;
+    if (horiz === null) horiz = Math.abs(dx) > Math.abs(dy);
+    if (!horiz) return;
+    e.preventDefault();
+    const base = -cur * vp.offsetWidth;
+    let x = base + dx;
+    if (x > 0) x *= 0.3;
+    if (x < -(total - 1) * vp.offsetWidth) x = -(total - 1) * vp.offsetWidth + (x + (total - 1) * vp.offsetWidth) * 0.3;
+    track.style.transform = `translateX(${x}px)`;
+  }, { passive: false });
+
+  vp.addEventListener('touchend', e => {
+    if (!horiz) return;
+    track.style.transition = 'transform 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    const dx = e.changedTouches[0].clientX - tx;
+    if (dx < -50 && cur < total - 1) cur++;
+    else if (dx > 50 && cur > 0) cur--;
+    goTo(cur);
+  }, { passive: true });
+</script>
+</body>
+</html>
