@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Ticketmaster">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ffffff">
+<title>Ticketmaster</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --tm-blue: #026CDF;
+    --bg: #FFFFFF;
+    --gray-bg: #F5F5F5;
+    --border: #E5E5E5;
+    --text: #1A1A1A;
+    --text-light: #888888;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  html, body {
+    height: 100%;
+    background: #e0e0e0;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .phone-wrapper {
+    max-width: 430px;
+    margin: 0 auto;
+    background: var(--bg);
+    min-height: 100dvh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ===== STATUS BAR ===== */
+  .status-bar {
+    height: calc(var(--safe-top) + 44px);
+    min-height: 44px;
+    background: white;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 18px 8px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .status-time { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; color: #1A1A1A; }
+  .status-icons { display: flex; align-items: center; gap: 5px; }
+  .signal-bars { display: flex; align-items: flex-end; gap: 1.5px; height: 12px; }
+  .signal-bars span { display: block; width: 3px; background: #1A1A1A; border-radius: 1px; }
+  .signal-bars span:nth-child(1) { height: 4px; }
+  .signal-bars span:nth-child(2) { height: 6px; }
+  .signal-bars span:nth-child(3) { height: 8px; }
+  .signal-bars span:nth-child(4) { height: 10px; }
+  .status-5g { font-size: 13px; font-weight: 700; color: #1A1A1A; letter-spacing: -0.3px; }
+  .battery-icon { display: flex; align-items: center; gap: 1px; }
+  .battery-body { width: 25px; height: 12px; border: 1.5px solid #1A1A1A; border-radius: 3px; position: relative; display: flex; align-items: center; padding: 1.5px; }
+  .battery-fill { height: 100%; width: 55%; background: #1A1A1A; border-radius: 1px; }
+  .battery-tip { width: 2px; height: 6px; background: #1A1A1A; border-radius: 0 1px 1px 0; }
+
+  /* ===== NAV BAR ===== */
+  .nav-bar {
+    background: white;
+    display: flex;
+    align-items: center;
+    padding: 8px 14px 12px;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-back {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #E5E5EA;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; cursor: pointer;
+  }
+  .nav-back svg { width: 16px; height: 16px; }
+  .nav-title { flex: 1; text-align: center; }
+  .nav-title-main { font-size: 13px; font-weight: 600; color: #1A1A1A; line-height: 1.2; }
+  .nav-title-sub { font-size: 11.5px; color: var(--text-light); margin-top: 1px; }
+  .nav-barcode {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--tm-blue);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; cursor: pointer;
+  }
+  .nav-barcode svg { width: 22px; height: 22px; }
+
+  /* ===== HERO ===== */
+  .hero {
+    width: 100%; height: 185px;
+    background: linear-gradient(145deg, #C8C5C2 0%, #D8D5D0 40%, #C2BFB9 100%);
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(200,195,190,0.8) 0%, rgba(160,155,148,0.4) 100%);
+  }
+  .ufc-logo {
+    position: relative; z-index: 1;
+    font-size: 92px; font-weight: 900; font-style: italic;
+    color: #CC0000; letter-spacing: -4px; line-height: 1;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+    font-family: 'Arial Black', 'Impact', -apple-system, sans-serif;
+    transform: scaleX(1.05); display: inline-block;
+  }
+  .hero-circle {
+    position: absolute; right: 16px; bottom: 14px;
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1.5px solid rgba(0,0,0,0.2);
+    background: rgba(255,255,255,0.15);
+  }
+
+  /* ===== EVENT HEADER ===== */
+  .event-header { background: #111111; padding: 14px 16px 18px; }
+  .event-date { font-size: 12.5px; font-weight: 600; color: #CCCCCC; letter-spacing: 0.3px; margin-bottom: 7px; text-transform: uppercase; }
+  .event-name { font-size: 26px; font-weight: 800; color: #FFFFFF; line-height: 1.15; letter-spacing: -0.5px; }
+
+  /* ===== TABS ===== */
+  .tabs { display: flex; background: white; border-bottom: 1px solid var(--border); }
+  .tab {
+    flex: 1; padding: 14px 0 12px; text-align: center;
+    font-size: 15.5px; font-weight: 500; color: var(--text-light);
+    border-bottom: 2.5px solid transparent; cursor: pointer; transition: all 0.15s;
+  }
+  .tab.active { font-weight: 700; color: #1A1A1A; border-bottom-color: #1A1A1A; }
+
+  /* ===== CONTENT ===== */
+  .content { background: var(--gray-bg); min-height: 400px; padding-bottom: calc(var(--safe-bottom) + 40px); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Order row */
+  .order-row {
+    background: white; padding: 14px 16px 12px;
+    display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px;
+  }
+  .order-number { font-size: 15.5px; font-weight: 700; color: #1A1A1A; letter-spacing: -0.2px; }
+  .order-qty { font-size: 13.5px; color: var(--text-light); margin-top: 3px; }
+  .order-dots { width: 28px; height: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; margin-top: 2px; gap: 3px; }
+  .order-dots span { display: block; width: 4px; height: 4px; background: #555; border-radius: 50%; }
+
+  /* Ticket card */
+  .ticket-card { background: white; margin-bottom: 1px; overflow: hidden; cursor: pointer; transition: background 0.15s; }
+  .ticket-card:active { background: #F8F8F8; }
+  .ticket-type-bar { background: #E8E8E8; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .ticket-type-label { font-size: 13.5px; font-weight: 700; color: #1A1A1A; }
+  .view-ticket-btn {
+    font-size: 12.5px; font-weight: 600; color: var(--tm-blue);
+    background: none; border: none; cursor: pointer; padding: 2px 0;
+  }
+  .ticket-seat-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    padding: 14px 16px 18px; background: white; border-top: 1px solid #F0F0F0;
+  }
+  .seat-col { display: flex; flex-direction: column; gap: 5px; }
+  .seat-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #888888; }
+  .seat-value { font-size: 26px; font-weight: 700; color: #1A1A1A; letter-spacing: -0.5px; }
+
+  /* More options */
+  .more-options-section { margin: 10px 0 0; padding: 0 0 8px; background: white; }
+  .more-options-title { font-size: 15.5px; font-weight: 700; color: #1A1A1A; padding: 14px 16px 10px; }
+  .options-row { display: flex; padding: 0 16px 10px; gap: 16px; }
+  .option-pill {
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
+    cursor: pointer; padding: 14px 24px; background: white;
+    border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.10); min-width: 110px;
+  }
+  .option-icon { width: 28px; height: 28px; color: var(--tm-blue); }
+  .option-label { font-size: 13.5px; font-weight: 500; color: #1A1A1A; }
+
+  /* Map */
+  .map-section { margin-top: 10px; height: 160px; overflow: hidden; position: relative; background: #E8E4DC; }
+  .map-svg { width: 100%; height: 100%; }
+  .map-label {
+    position: absolute; bottom: 10px; left: 14px;
+    background: rgba(255,255,255,0.92); border-radius: 6px;
+    padding: 5px 10px; font-size: 13px; font-weight: 600; color: #1A1A1A;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+  .map-label-right {
+    position: absolute; bottom: 10px; right: 14px;
+    background: rgba(255,255,255,0.92); border-radius: 6px;
+    padding: 5px 10px; font-size: 13px; font-weight: 600; color: #1A1A1A;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+
+  /* ===== BARCODE TICKET FULLSCREEN ===== */
+  .ticket-fullscreen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: #0a1628;
+    flex-direction: column;
+    max-width: 430px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .ticket-fullscreen.open { display: flex; }
+
+  .tf-status-bar {
+    height: calc(var(--safe-top) + 44px);
+    min-height: 44px;
+    background: #0a1628;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 18px 8px;
+    flex-shrink: 0;
+  }
+  .tf-status-time { font-size: 15px; font-weight: 600; color: white; letter-spacing: -0.3px; }
+  .tf-status-icons { display: flex; align-items: center; gap: 5px; }
+  .tf-signal-bars { display: flex; align-items: flex-end; gap: 1.5px; height: 12px; }
+  .tf-signal-bars span { display: block; width: 3px; background: white; border-radius: 1px; }
+  .tf-signal-bars span:nth-child(1) { height: 4px; }
+  .tf-signal-bars span:nth-child(2) { height: 6px; }
+  .tf-signal-bars span:nth-child(3) { height: 8px; }
+  .tf-signal-bars span:nth-child(4) { height: 10px; }
+  .tf-5g { font-size: 13px; font-weight: 700; color: white; }
+  .tf-battery-body { width: 25px; height: 12px; border: 1.5px solid white; border-radius: 3px; display: flex; align-items: center; padding: 1.5px; }
+  .tf-battery-fill { height: 100%; width: 55%; background: white; border-radius: 1px; }
+  .tf-battery-tip { width: 2px; height: 6px; background: white; border-radius: 0 1px 1px 0; }
+
+  .tf-nav {
+    background: #0a1628;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 16px 16px;
+    flex-shrink: 0;
+  }
+  .tf-done-btn {
+    font-size: 17px; font-weight: 400; color: #4DA6FF;
+    background: none; border: none; cursor: pointer; padding: 4px 0;
+  }
+  .tf-nav-title { font-size: 17px; font-weight: 600; color: white; }
+
+  .tf-body {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 0 0 calc(var(--safe-bottom) + 16px);
+  }
+
+  /* Swipe container */
+  .tf-swipe-container {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .tf-swipe-track {
+    display: flex;
+    height: 100%;
+    transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+  }
+
+  .tf-ticket-slide {
+    min-width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 20px 0;
+    overflow-y: auto;
+  }
+
+  .tf-ticket-card {
+    width: 100%;
+    max-width: 340px;
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .tf-card-header {
+    background: #1c2e4a;
+    padding: 16px 18px 14px;
+  }
+  .tf-event-label { font-size: 11px; font-weight: 600; color: #7BA7D4; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; }
+  .tf-event-name { font-size: 16px; font-weight: 800; color: white; line-height: 1.2; }
+  .tf-event-date { font-size: 12.5px; color: #9EC2E8; margin-top: 5px; }
+
+  .tf-card-venue {
+    background: #253650;
+    padding: 8px 18px;
+  }
+  .tf-venue-text { font-size: 12px; color: #7BA7D4; }
+
+  .tf-barcode-area {
+    background: white;
+    padding: 22px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .tf-safetix-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #026CDF;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .tf-safetix-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #026CDF;
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .tf-barcode-svg {
+    width: 100%;
+    max-width: 290px;
+    height: 100px;
+    border: 1px solid #E8E8E8;
+    border-radius: 4px;
+    background: white;
+  }
+
+  .tf-barcode-num { font-size: 11px; color: #888; letter-spacing: 2px; font-family: monospace; }
+
+  .tf-seat-info {
+    background: white;
+    border-top: 1px solid #F0F0F0;
+    padding: 16px 18px;
+  }
+
+  .tf-seat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+  }
+
+  .tf-seat-col { display: flex; flex-direction: column; gap: 4px; }
+  .tf-seat-col:not(:last-child) { border-right: 1px solid #F0F0F0; padding-right: 12px; margin-right: 12px; }
+  .tf-seat-label { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #999; }
+  .tf-seat-value { font-size: 28px; font-weight: 800; color: #1A1A1A; letter-spacing: -0.5px; }
+
+  .tf-card-footer {
+    background: #F8F8F8;
+    border-top: 1px solid #EFEFEF;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .tf-ticket-type { font-size: 12.5px; font-weight: 600; color: #555; }
+  .tf-order-num { font-size: 11px; color: #999; }
+
+  /* Swipe dots */
+  .tf-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 0 8px;
+    flex-shrink: 0;
+  }
+  .tf-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .tf-dot.active { background: white; width: 20px; border-radius: 4px; }
+
+  /* Swipe hint */
+  .tf-swipe-hint {
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    padding: 0 0 4px;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+<div class="phone-wrapper">
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-time">4:26</div>
+    <div class="status-icons">
+      <div class="signal-bars"><span></span><span></span><span></span><span></span></div>
+      <div class="status-5g">5G</div>
+      <div class="battery-icon">
+        <div class="battery-body"><div class="battery-fill"></div></div>
+        <div class="battery-tip"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV BAR -->
+  <div class="nav-bar">
+    <div class="nav-back">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M15 6L9 12L15 18" stroke="#1A1A1A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="nav-title">
+      <div class="nav-title-main">UFC 328: CHIMAEV V STRICKLAND</div>
+      <div class="nav-title-sub">Prudential Center · Newark, NJ</div>
+    </div>
+    <div class="nav-barcode">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M2 7V3.5C2 2.67 2.67 2 3.5 2H7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <path d="M17 2H20.5C21.33 2 22 2.67 22 3.5V7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <path d="M2 17V20.5C2 21.33 2.67 22 3.5 22H7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <path d="M17 22H20.5C21.33 22 22 21.33 22 20.5V17" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <line x1="5" y1="8" x2="5" y2="16" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="7.5" y1="8" x2="7.5" y2="16" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="10" y1="8" x2="10" y2="16" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="12.5" y1="8" x2="12.5" y2="16" stroke="white" stroke-width="1" stroke-linecap="round"/>
+        <line x1="14.5" y1="8" x2="14.5" y2="16" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <line x1="17" y1="8" x2="17" y2="16" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="19" y1="8" x2="19" y2="16" stroke="white" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- HERO IMAGE -->
+  <div class="hero">
+    <div class="ufc-logo">UFC</div>
+    <div class="hero-circle"></div>
+  </div>
+
+  <!-- EVENT HEADER -->
+  <div class="event-header">
+    <div class="event-date">SAT &bull; MAY 09, 2026 &bull; 5:00 PM</div>
+    <div class="event-name">UFC 328: CHIMAEV<br>V STRICKLAND</div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('tickets', this)">Tickets</div>
+    <div class="tab" onclick="switchTab('extras', this)">Extras</div>
+  </div>
+
+  <!-- TICKETS TAB -->
+  <div id="tab-tickets" class="tab-content active">
+    <div class="content">
+
+      <div class="order-row">
+        <div class="order-info">
+          <div class="order-number">Order #19-59049/PHI</div>
+          <div class="order-qty">x2 Tickets</div>
+        </div>
+        <div class="order-dots"><span></span><span></span><span></span></div>
+      </div>
+
+      <!-- Ticket 1 -->
+      <div class="ticket-card" onclick="openTicket(0)">
+        <div class="ticket-type-bar">
+          <div class="ticket-type-label">Standard Ticket</div>
+          <button class="view-ticket-btn">View Ticket</button>
+        </div>
+        <div class="ticket-seat-row">
+          <div class="seat-col"><div class="seat-label">Section</div><div class="seat-value">C</div></div>
+          <div class="seat-col"><div class="seat-label">Row</div><div class="seat-value">3</div></div>
+          <div class="seat-col"><div class="seat-label">Seat</div><div class="seat-value">7</div></div>
+        </div>
+      </div>
+
+      <!-- Ticket 2 -->
+      <div class="ticket-card" onclick="openTicket(1)">
+        <div class="ticket-type-bar">
+          <div class="ticket-type-label">Standard Ticket</div>
+          <button class="view-ticket-btn">View Ticket</button>
+        </div>
+        <div class="ticket-seat-row">
+          <div class="seat-col"><div class="seat-label">Section</div><div class="seat-value">C</div></div>
+          <div class="seat-col"><div class="seat-label">Row</div><div class="seat-value">3</div></div>
+          <div class="seat-col"><div class="seat-label">Seat</div><div class="seat-value">8</div></div>
+        </div>
+      </div>
+
+      <!-- MORE OPTIONS -->
+      <div class="more-options-section">
+        <div class="more-options-title">MORE OPTIONS</div>
+        <div class="options-row">
+          <div class="option-pill">
+            <svg class="option-icon" viewBox="0 0 24 24" fill="none">
+              <path d="M7 17L17 7M17 7H10M17 7V14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="option-label">Transfer</span>
+          </div>
+          <div class="option-pill">
+            <svg class="option-icon" viewBox="0 0 24 24" fill="none">
+              <path d="M4 4v5h5M20 20v-5h-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4 9a8 8 0 0 1 13.93-2.93M20 15a8 8 0 0 1-13.93 2.93" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+            <span class="option-label">Sell</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAP -->
+      <div class="map-section">
+        <svg class="map-svg" viewBox="0 0 430 160" xmlns="http://www.w3.org/2000/svg">
+          <rect width="430" height="160" fill="#E8E4DC"/>
+          <rect x="0" y="48" width="430" height="10" fill="#FFFFFF" opacity="0.85"/>
+          <rect x="0" y="90" width="430" height="14" fill="#FFFFFF" opacity="0.9"/>
+          <rect x="0" y="130" width="430" height="9" fill="#FFFFFF" opacity="0.8"/>
+          <rect x="80" y="0" width="9" height="160" fill="#FFFFFF" opacity="0.8"/>
+          <rect x="160" y="0" width="12" height="160" fill="#FFFFFF" opacity="0.85"/>
+          <rect x="260" y="0" width="9" height="160" fill="#FFFFFF" opacity="0.8"/>
+          <rect x="340" y="0" width="9" height="160" fill="#FFFFFF" opacity="0.8"/>
+          <path d="M0 160 L120 80 L430 0" stroke="#FFFFFF" stroke-width="13" fill="none" opacity="0.85"/>
+          <rect x="0" y="0" width="78" height="46" fill="#D4CFC8" rx="2"/>
+          <rect x="91" y="0" width="67" height="46" fill="#D4CFC8" rx="2"/>
+          <rect x="174" y="0" width="84" height="46" fill="#D4CFC8" rx="2"/>
+          <rect x="270" y="0" width="68" height="46" fill="#D4CFC8" rx="2"/>
+          <rect x="351" y="0" width="79" height="46" fill="#D4CFC8" rx="2"/>
+          <rect x="0" y="60" width="78" height="28" fill="#D4CFC8" rx="2"/>
+          <rect x="91" y="60" width="67" height="28" fill="#D4CFC8" rx="2"/>
+          <rect x="174" y="56" width="84" height="32" fill="#B8B0A8" rx="3"/>
+          <ellipse cx="216" cy="72" rx="22" ry="14" fill="#C8C4BE" stroke="#9A9490" stroke-width="1.5"/>
+          <ellipse cx="216" cy="72" rx="15" ry="9" fill="#D0CCC6"/>
+          <rect x="270" y="60" width="68" height="28" fill="#D4CFC8" rx="2"/>
+          <rect x="351" y="60" width="79" height="28" fill="#D4CFC8" rx="2"/>
+          <rect x="0" y="106" width="78" height="52" fill="#D4CFC8" rx="2"/>
+          <rect x="91" y="106" width="67" height="52" fill="#D4CFC8" rx="2"/>
+          <rect x="174" y="106" width="84" height="52" fill="#D4CFC8" rx="2"/>
+          <rect x="270" y="106" width="68" height="52" fill="#D4CFC8" rx="2"/>
+          <rect x="351" y="106" width="79" height="52" fill="#D4CFC8" rx="2"/>
+          <rect x="340" y="108" width="46" height="22" rx="4" fill="#3A72C0"/>
+          <text x="363" y="124" font-size="12" font-weight="800" fill="white" text-anchor="middle" font-family="Arial, sans-serif">280</text>
+          <text x="310" y="46" font-size="11" font-weight="600" fill="#555" font-family="Arial, sans-serif">Harrison</text>
+          <circle cx="216" cy="58" r="9" fill="#026CDF"/>
+          <circle cx="216" cy="58" r="4" fill="white"/>
+          <path d="M216 67 L213 58 L219 58 Z" fill="#026CDF"/>
+        </svg>
+        <div class="map-label">Prudential Center</div>
+        <div class="map-label-right">Harrison</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- EXTRAS TAB -->
+  <div id="tab-extras" class="tab-content">
+    <div class="content" style="display:flex;align-items:center;justify-content:center;padding-top:60px;flex-direction:column;gap:12px;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" style="opacity:0.3">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="7" y1="7" x2="7.01" y2="7" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div style="font-size:15px;color:#888;font-weight:500;">No extras available</div>
+    </div>
+  </div>
+
+</div><!-- end phone-wrapper -->
+
+
+<!-- ===== FULLSCREEN TICKET BARCODE VIEW ===== -->
+<div class="ticket-fullscreen" id="ticketFullscreen">
+
+  <!-- Dark status bar -->
+  <div class="tf-status-bar">
+    <div class="tf-status-time">4:26</div>
+    <div class="tf-status-icons">
+      <div class="tf-signal-bars"><span></span><span></span><span></span><span></span></div>
+      <div class="tf-5g">5G</div>
+      <div class="battery-icon">
+        <div class="tf-battery-body"><div class="tf-battery-fill"></div></div>
+        <div class="tf-battery-tip"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="tf-nav">
+    <button class="tf-done-btn" onclick="closeTicket()">Done</button>
+    <div class="tf-nav-title">My Tickets</div>
+    <div style="width:44px"></div>
+  </div>
+
+  <!-- Swipeable ticket body -->
+  <div class="tf-body">
+    <div class="tf-swipe-container" id="tfSwipeContainer">
+      <div class="tf-swipe-track" id="tfTrack">
+
+        <!-- Slide 1: Seat 7 -->
+        <div class="tf-ticket-slide">
+          <div class="tf-ticket-card">
+            <div class="tf-card-header">
+              <div class="tf-event-label">UFC</div>
+              <div class="tf-event-name">UFC 328: CHIMAEV V STRICKLAND</div>
+              <div class="tf-event-date">Sat, May 09, 2026 · 5:00 PM</div>
+            </div>
+            <div class="tf-card-venue">
+              <div class="tf-venue-text">Prudential Center · Newark, NJ</div>
+            </div>
+            <div class="tf-barcode-area">
+              <div class="tf-safetix-label">
+                <div class="tf-safetix-dot"></div>
+                SafeTix™ Protected
+              </div>
+              <!-- Barcode SVG seat 7 -->
+              <svg class="tf-barcode-svg" id="barcode7" viewBox="0 0 290 100" xmlns="http://www.w3.org/2000/svg">
+                <rect width="290" height="100" fill="white"/>
+              </svg>
+              <div class="tf-barcode-num">7312 8419 5061 2837</div>
+            </div>
+            <div class="tf-seat-info">
+              <div class="tf-seat-grid">
+                <div class="tf-seat-col">
+                  <div class="tf-seat-label">Section</div>
+                  <div class="tf-seat-value">C</div>
+                </div>
+                <div class="tf-seat-col">
+                  <div class="tf-seat-label">Row</div>
+                  <div class="tf-seat-value">3</div>
+                </div>
+                <div class="tf-seat-col">
+                  <div class="tf-seat-label">Seat</div>
+                  <div class="tf-seat-value">7</div>
+                </div>
+              </div>
+            </div>
+            <div class="tf-card-footer">
+              <div class="tf-ticket-type">Standard Ticket</div>
+              <div class="tf-order-num">Order #19-59049/PHI</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 2: Seat 8 -->
+        <div class="tf-ticket-slide">
+          <div class="tf-ticket-card">
+            <div class="tf-card-header">
+              <div class="tf-event-label">UFC</div>
+              <div class="tf-event-name">UFC 328: CHIMAEV V STRICKLAND</div>
+              <div class="tf-event-date">Sat, May 09, 2026 · 5:00 PM</div>
+            </div>
+            <div class="tf-card-venue">
+              <div class="tf-venue-text">Prudential Center · Newark, NJ</div>
+            </div>
+            <div class="tf-barcode-area">
+              <div class="tf-safetix-label">
+                <div class="tf-safetix-dot"></div>
+                SafeTix™ Protected
+              </div>
+              <!-- Barcode SVG seat 8 -->
+              <svg class="tf-barcode-svg" id="barcode8" viewBox="0 0 290 100" xmlns="http://www.w3.org/2000/svg">
+                <rect width="290" height="100" fill="white"/>
+              </svg>
+              <div class="tf-barcode-num">9204 5738 1629 4053</div>
+            </div>
+            <div class="tf-seat-info">
+              <div class="tf-seat-grid">
+                <div class="tf-seat-col">
+                  <div class="tf-seat-label">Section</div>
+                  <div class="tf-seat-value">C</div>
+                </div>
+                <div class="tf-seat-col">
+                  <div class="tf-seat-label">Row</div>
+                  <div class="tf-seat-value">3</div>
+                </div>
+                <div class="tf-seat-col">
+                  <div class="tf-seat-label">Seat</div>
+                  <div class="tf-seat-value">8</div>
+                </div>
+              </div>
+            </div>
+            <div class="tf-card-footer">
+              <div class="tf-ticket-type">Standard Ticket</div>
+              <div class="tf-order-num">Order #19-59049/PHI</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- tf-swipe-track -->
+    </div><!-- tf-swipe-container -->
+
+    <!-- Page dots -->
+    <div class="tf-dots">
+      <div class="tf-dot active" id="dot0" onclick="goToSlide(0)"></div>
+      <div class="tf-dot" id="dot1" onclick="goToSlide(1)"></div>
+    </div>
+    <div class="tf-swipe-hint">Swipe for next ticket</div>
+  </div>
+
+</div><!-- end ticketFullscreen -->
+
+<script>
+// ===== TAB SWITCHING =====
+function switchTab(tabName, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + tabName).classList.add('active');
+}
+
+// ===== BARCODE GENERATION =====
+function generateBarcode(svgId, seed) {
+  const svg = document.getElementById(svgId);
+  const width = 290;
+  const height = 100;
+  const margin = 10;
+  const barArea = width - margin * 2;
+
+  // Seeded pseudo-random
+  let s = seed;
+  function rand() {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 0xffffffff;
+  }
+
+  // Generate bar widths (1-3px) with gaps
+  let x = margin;
+  let bars = [];
+  while (x < width - margin) {
+    const w = Math.floor(rand() * 3) + 1;
+    bars.push({ x, w, isBar: bars.length % 2 === 0 });
+    x += w;
+  }
+
+  let html = `<rect width="${width}" height="${height}" fill="white"/>`;
+  // Quiet zones
+  html += `<rect x="0" y="0" width="${margin}" height="${height}" fill="white"/>`;
+  html += `<rect x="${width - margin}" y="0" width="${margin}" height="${height}" fill="white"/>`;
+
+  bars.forEach(b => {
+    if (b.isBar) {
+      // Vary bar heights slightly for realism
+      const shortBar = rand() > 0.85;
+      const barH = shortBar ? height * 0.75 : height - 12;
+      const barY = shortBar ? 6 : 6;
+      html += `<rect x="${b.x}" y="${barY}" width="${b.w}" height="${barH}" fill="black"/>`;
+    }
+  });
+
+  // Start/end guard bars
+  html += `<rect x="${margin}" y="6" width="2" height="${height - 12}" fill="black"/>`;
+  html += `<rect x="${margin + 3}" y="6" width="1" height="${height - 12}" fill="black"/>`;
+  html += `<rect x="${width - margin - 3}" y="6" width="2" height="${height - 12}" fill="black"/>`;
+  html += `<rect x="${width - margin - 6}" y="6" width="1" height="${height - 12}" fill="black"/>`;
+
+  svg.innerHTML = html;
+}
+
+generateBarcode('barcode7', 731284195);
+generateBarcode('barcode8', 920457381);
+
+// ===== FULLSCREEN TICKET =====
+let currentSlide = 0;
+const totalSlides = 2;
+
+function openTicket(slideIndex) {
+  currentSlide = slideIndex;
+  document.getElementById('ticketFullscreen').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  updateSlidePosition(false);
+  updateDots();
+}
+
+function closeTicket() {
+  document.getElementById('ticketFullscreen').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function goToSlide(idx) {
+  currentSlide = Math.max(0, Math.min(totalSlides - 1, idx));
+  updateSlidePosition(true);
+  updateDots();
+}
+
+function updateSlidePosition(animate) {
+  const track = document.getElementById('tfTrack');
+  const container = document.getElementById('tfSwipeContainer');
+  const w = container.offsetWidth;
+  track.style.transition = animate ? 'transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none';
+  track.style.transform = `translateX(-${currentSlide * w}px)`;
+}
+
+function updateDots() {
+  for (let i = 0; i < totalSlides; i++) {
+    document.getElementById('dot' + i).classList.toggle('active', i === currentSlide);
+  }
+  const hint = document.querySelector('.tf-swipe-hint');
+  hint.textContent = currentSlide === 0 ? 'Swipe for next ticket' : 'Swipe for previous ticket';
+}
+
+// ===== SWIPE GESTURE =====
+(function() {
+  const container = document.getElementById('tfSwipeContainer');
+  const track = document.getElementById('tfTrack');
+  let startX = 0, startY = 0, isDragging = false, isHorizontal = null;
+  let currentX = 0;
+
+  container.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isDragging = true;
+    isHorizontal = null;
+    track.style.transition = 'none';
+    currentX = -currentSlide * container.offsetWidth;
+  }, { passive: true });
+
+  container.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+
+    if (isHorizontal === null) {
+      isHorizontal = Math.abs(dx) > Math.abs(dy);
+    }
+
+    if (!isHorizontal) return;
+    e.preventDefault();
+
+    const w = container.offsetWidth;
+    // Rubber band at edges
+    let x = currentX + dx;
+    const minX = -(totalSlides - 1) * w;
+    if (x > 0) x = x * 0.3;
+    if (x < minX) x = minX + (x - minX) * 0.3;
+    track.style.transform = `translateX(${x}px)`;
+  }, { passive: false });
+
+  container.addEventListener('touchend', e => {
+    if (!isDragging || !isHorizontal) { isDragging = false; return; }
+    isDragging = false;
+    const dx = e.changedTouches[0].clientX - startX;
+    const threshold = container.offsetWidth * 0.25;
+
+    if (dx < -threshold && currentSlide < totalSlides - 1) {
+      currentSlide++;
+    } else if (dx > threshold && currentSlide > 0) {
+      currentSlide--;
+    }
+
+    updateSlidePosition(true);
+    updateDots();
+  }, { passive: true });
+})();
+
+// Close on back gesture (Android)
+window.addEventListener('popstate', () => {
+  if (document.getElementById('ticketFullscreen').classList.contains('open')) {
+    closeTicket();
+  }
+});
+</script>
+</body>
+</html>
